@@ -1,3 +1,25 @@
+# Terminal GPT Assistant 🤖
+
+<div align="center">
+  <img src="assets/terminal_assistant.png" alt="Terminal Assistant Demo" width="800"/>
+</div>
+
+A natural language terminal assistant that converts English commands into Linux operations. Simply type what you want to do in plain English, and the assistant will execute the appropriate terminal commands.
+
+## ✨ Key Features
+
+- 🗣️ Natural language command interpretation
+- 🛠️ Automatic Linux command execution
+- 🔒 Built-in safety checks for dangerous commands
+- 💻 Dual interface: Web UI and CLI
+- 📝 Detailed command explanations
+
+## 📋 Requirements
+
+- Python 3.10 or higher
+- OpenAI API key
+- Linux/Unix environment
+
 ## 💻 Running the Assistant
 
 ### Option 1: Web Interface
@@ -86,8 +108,6 @@ Terminal_GPT_Assistant/
    Error: No module named 'langchain'
    Solution: Activate virtual environment and run: pip install -r requirements.txt
    ```
-
-
 
 ## 🛠️ Built With
 
