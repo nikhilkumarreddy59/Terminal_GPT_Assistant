@@ -1,99 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Chat Bot</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Terminal Assistant</title>
     <style>
         body {
-            background-color: #f8f9fa;
-        }
-        .chat-container {
+            font-family: Arial, sans-serif;
             max-width: 800px;
-            margin: 50px auto;
+            margin: 0 auto;
             padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            background-color: #ffffff;
+            background-color: #f5f5f5;
         }
-        .chat-box {
-            max-height: 500px;
-            overflow-y: auto;
+        .terminal {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        #output {
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+            font-family: monospace;
+        }
+        input[type="text"] {
+            width: 80%;
             padding: 10px;
-            border-bottom: 1px solid #ddd;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
-        .message {
-            margin: 10px 0;
-            padding: 10px;
-            font-size: 1.1em;
-            border-radius: 10px;
-        }
-        .user-message {
-            background-color: #007bff;
-            color: white;
-            text-align: right;
-            align-self: flex-end;
-        }
-        .bot-message {
-            background-color: #e9ecef;
-            color: black;
-            text-align: left;
-            align-self: flex-start;
-        }
-        .input-container {
-            display: flex;
-            margin-top: 20px;
-        }
-        .input-container input {
-            flex: 1;
-            padding: 10px;
-            font-size: 1.1em;
-        }
-        .input-container button {
+        button {
             padding: 10px 20px;
-            font-size: 1.1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="chat-container">
-            <h2 class="text-center">Chat Bot</h2>
-            <div class="chat-box d-flex flex-column" id="chat-box">
-                {% if chat_history %}
-                    {% for entry in chat_history %}
-                        <div class="message {{ entry.sender }}">
-                            {{ entry.text }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            </div>
-            <form method="POST" class="input-container" id="message-form">
-                <input type="text" class="form-control" id="user_input" name="user_input" placeholder="Type your message..." required>
-                <button type="submit" class="btn btn-primary">Send</button>
-            </form>
+    <h1>Terminal Assistant</h1>
+    <div class="terminal">
+        <div id="output">Welcome to Terminal Assistant! Type a command below.</div>
+        <div>
+            <input type="text" id="command" placeholder="Enter your command...">
+            <button onclick="sendCommand()">Send</button>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script>
-        // Scroll chat box to the bottom
-        function scrollToBottom() {
-            var chatBox = document.getElementById('chat-box');
-            chatBox.scrollTop = chatBox.scrollHeight;
+        function sendCommand() {
+            const command = document.getElementById('command').value;
+            const output = document.getElementById('output');
+            
+            if (!command) return;
+            
+            output.innerHTML += '\n> ' + command;
+            
+            fetch('/command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command: command })
+            })
+            .then(response => response.json())
+            .then(data => {
+                output.innerHTML += '\n' + (data.response || data.error);
+                output.innerHTML += '\n';
+                output.scrollTop = output.scrollHeight;
+            })
+            .catch(error => {
+                output.innerHTML += '\nError: ' + error;
+                output.innerHTML += '\n';
+            });
+            
+            document.getElementById('command').value = '';
         }
 
-        // Scroll to bottom initially
-        scrollToBottom();
-
-        // Scroll to bottom on form submit (new message)
-        var form = document.getElementById('message-form');
-        form.addEventListener('submit', function() {
-            setTimeout(scrollToBottom, 100); // Delay to ensure message is added before scrolling
+        // Allow Enter key to send command
+        document.getElementById('command').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendCommand();
+            }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

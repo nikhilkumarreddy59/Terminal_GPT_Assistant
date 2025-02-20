@@ -1,33 +1,64 @@
-from langchain_experimental.agents.agent_toolkits import create_python_agent
-from langchain.agents import load_tools, initialize_agent
-from langchain.agents import AgentType
-from langchain_experimental.tools.python.tool import PythonREPLTool
-from langchain.python import PythonREPL
-from langchain.chat_models import ChatOpenAI
 import os
-import openai
-
-from langchain_openai import ChatOpenAI  # For interacting with OpenAI's LLMs
-from langchain_core.prompts import ChatPromptTemplate  # For crafting prompts
-from langchain_core.output_parsers import StrOutputParser  # For parsing LLM responses (optional)
-
+from dotenv import load_dotenv, find_dotenv
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.agent_toolkits.load_tools import load_tools
+from langchain.agents import initialize_agent, AgentType
 from langchain_community.tools import ShellTool
-openai.api_key = os.getenv("OPENAI_API_KEY_2")
-llm_model = "gpt-3.5-turbo"
 
-llm = ChatOpenAI(temperature=0, model=llm_model,openai_api_key=openai.api_key)
-tools = load_tools(["llm-math", "wikipedia"], llm=llm)
+class LanguageAgent:
+    def __init__(self):
+        # Load environment variables
+        env_path = find_dotenv()
+        print(f"Found .env file at: {env_path}")
+        load_dotenv(env_path)
+        
+        # Get API key
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError("No OpenAI API key found in environment variables")
+        
+        print(f"API Key length: {len(self.api_key)}")
+        print(f"API Key first 10 chars: {self.api_key[:10]}")
+        
+        # Initialize components
+        self.llm = self._setup_llm()
+        self.tools = self._setup_tools()
+        self.agent = self._setup_agent()
+    
+    def _setup_llm(self):
+        return ChatOpenAI(
+            temperature=0,
+            model="gpt-3.5-turbo",
+            openai_api_key=self.api_key
+        )
+    
+    def _setup_tools(self):
+        basic_tools = load_tools(["llm-math", "wikipedia"], llm=self.llm)
+        shell_tool = ShellTool()
+        return basic_tools + [shell_tool]
+    
+    def _setup_agent(self):
+        return initialize_agent(
+            self.tools,
+            self.llm,
+            agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+            handle_parsing_errors=True,
+            verbose=True
+        )
+    
+    def process_input(self, user_input):
+        try:
+            return self.agent(user_input)['output']
+        except Exception as e:
+            return f"Error processing input: {str(e)}"
 
-
-
-shell_tool = ShellTool()
-
-
+# Function to maintain compatibility with existing code
 def agent_(input):
-    agent = initialize_agent(
-        tools + [shell_tool],
-        llm,
-        agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
-        handle_parsing_errors=True,
-        verbose=True)
-    return agent(input)['output']
+    agent = LanguageAgent()
+    return agent.process_input(input)
+
+# Test the agent if run directly
+if __name__ == "__main__":
+    agent = LanguageAgent()
+    response = agent.process_input("What is 2 + 2?")
+    print("Response:", response)

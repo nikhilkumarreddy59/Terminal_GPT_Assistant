@@ -1,23 +1,45 @@
-from flask import Flask, render_template, request
-from langchain_tools_and_agents import agent_
+from flask import Flask, request, jsonify, render_template
+from terminal_assistant import TerminalAssistant
+import logging
+
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-chat_history = []
+# Initialize the terminal assistant
+assistant = TerminalAssistant()
 
-def get_response_text(input_text):
-    # This function generates the response text
-    return input_text
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def home():
-    global chat_history
-    if request.method == 'POST':
-        user_input = request.form['user_input']
-        chat_history.append({'sender': 'user-message', 'text': user_input})
-        response_text = agent_(user_input)
-        chat_history.append({'sender': 'bot-message', 'text': response_text})
-    return render_template('index.html', chat_history=chat_history)
+    return render_template('index.html')
 
+@app.route('/command', methods=['POST'])
+def process_command():
+    try:
+        data = request.json
+        user_input = data.get('command', '')
+        
+        if not user_input:
+            return jsonify({'error': 'No command provided'}), 400
+            
+        logger.info(f"Processing command: {user_input}")
+        response = assistant.process_command(user_input)
+        
+        return jsonify({
+            'response': response,
+            'status': 'success'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error processing command: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'status': 'error'
+        }), 500
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy'})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
