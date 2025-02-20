@@ -87,13 +87,7 @@ Terminal_GPT_Assistant/
    Solution: Activate virtual environment and run: pip install -r requirements.txt
    ```
 
-## 🤝 Support
 
-If you encounter any issues:
-1. Check the troubleshooting section above
-2. Run `test_openai.py` to verify API connection
-3. Ensure all dependencies are installed correctly
-4. Check your Python version (`python --version`)
 
 ## 🛠️ Built With
 
@@ -106,6 +100,5 @@ If you encounter any issues:
 
 - Natural language command interpretation
 - Web and CLI interfaces
-- Safety checks for dangerous commands
 - Real-time command execution
 - Detailed command explanations
